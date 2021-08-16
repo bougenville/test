@@ -23,11 +23,27 @@ So, the pipeline seems like:
 
 > 1. I didn't notice that I only give the VM 1 CPU until the building process was half passed, to save your time, give it as many as possible! 
 > 2. I didn't use Tmux until Chapter 8.44. Automake-1.16.2, we should introduce this awesome tool from the very beginning!
+> 3. Do the following to make sure your VM works perfectly.
+> ```bash
+>       sudo apt install -y dkms linux-headers-$(uname -r)-amd64
+> ```
 
 ## 2. LFS
 
+All commands here are run as user **root** if there is no special explanation.
+
 ### 2.1 Preparing the Host System
 [Host System Requirements](http://www.linuxfromscratch.org/lfs/view/stable/chapter02/hostreqs.html)
+
+As in Debian, do the following should solve all the problems.
+
+```bash
+apt install -y build-essential bison gawk m4 texinfo
+rm -fv /bin/sh
+ln -s /usr/bin/bash /bin/sh
+```
+
+Now, rsync the `version-check.sh` script to your virtualbox host, then execute it as root user.
 
 ### 2.2 All about the partition
 
@@ -36,7 +52,8 @@ So, the pipeline seems like:
     It is so frustated to deal with the partition on VirtualBox, to finish the building ASAP, I renew a Debian VM with an empty partition left.
 
     ```bash
-    mkfs.ext4 /dev/sda4  # the partition is /dev/sda4 in my case
+    cfdisk /dev/sdb
+    mkfs.ext4 /dev/sdb1  # the partition is /dev/sdb1 in my case
     ```
 
 - Setting The $LFS Variable
@@ -46,18 +63,25 @@ So, the pipeline seems like:
 - Mounting the New Partition
     ```bash
     mkdir -pv $LFS
-    mount -v -t ext4 /dev/sda4 $LFS
+    mount -v -t ext4 /dev/sdb1 $LFS
     ```
-### 2.3 Packages and Patches
-
-In China, use `https://mirrors.ustc.edu.cn/lfs/lfs-packages/lfs-packages-10.0.tar` to speed up the downloading of the packages and patches.
-
-### 2.4 Final Preparations
-
 - Creating a limited directory layout in LFS filesystem
     ```bash
     mkdir -pv $LFS/{bin,etc,lib,lib64,sbin,usr,var,tools}
     ```
+
+### 2.3 Packages and Patches
+
+In China, use `https://mirrors.ustc.edu.cn/lfs/lfs-packages/lfs-packages-10.1.tar` to speed up the downloading of the packages and patches.
+
+```bash
+wget -c "https://mirrors.ustc.edu.cn/lfs/lfs-packages/lfs-packages-10.1.tar" -P /tmp
+tar xf /tmp/lfs-packages-10.1.tar -C /tmp
+mv /tmp/10.1/* $LFS/sources/
+```
+
+### 2.4 Final Preparations
+
 - Adding the LFS User
     ```bash
     groupadd lfs
@@ -66,6 +90,9 @@ In China, use `https://mirrors.ustc.edu.cn/lfs/lfs-packages/lfs-packages-10.0.ta
     chown -v -R lfs:lfs $LFS
     ```
 - Setting Up the Environment
+
+    **RUN AS USER lfs AT THIS STAGE**
+
     ```bash
     cat > ~/.bash_profile << "EOF"
     exec env -i HOME=$HOME TERM=$TERM PS1='\u:\w\$ ' /bin/bash
@@ -109,7 +136,8 @@ Part III. Building the LFS Cross Toolchain and Temporary Tools
         - Follow the book's instructions for building the package.
         - Change back to the sources directory.
         - Delete the extracted source directory unless instructed otherwise. 
-    ```
+
+**However, run `ch5-build.sh` as user lfs under the path `/mnt/lfs/sources` should be working like a charm from now on.**
 
 ### 2.5 Compiling a Cross-Toolchain
 
