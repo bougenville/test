@@ -25,7 +25,7 @@ So, the pipeline seems like:
 > 2. I didn't use Tmux until Chapter 8.44. Automake-1.16.2, we should introduce this awesome tool from the very beginning!
 > 3. Do the following to make sure your VM works perfectly.
 > ```bash
->       sudo apt install -y dkms linux-headers-$(uname -r)-amd64
+>       sudo apt install -y dkms linux-headers-$(uname -r)
 > ```
 
 ## 2. LFS
